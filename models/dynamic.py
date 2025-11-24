@@ -11,11 +11,13 @@ class Dynamics(nn.Module):
         self.layers = nn.Sequential(
             OrderedDict(
                 [
-                    ("input", nn.Linear(self.input_dim, 64)),
+                    ("input", nn.Linear(self.input_dim, 256)),
                     ("act1", nn.ReLU()),
-                    ("hidden", nn.Linear(64, 64)),
+                    ("hidden", nn.Linear(256, 256)),
                     ("act2", nn.ReLU()),
-                    ("output", nn.Linear(64, 32)),
+                    ("hidden", nn.Linear(256, 256)),
+                    ("act3", nn.ReLU()),
+                    ("output", nn.Linear(256, 32)),
                 ]
             )
         )

@@ -42,9 +42,12 @@ class RolloutBuffer:
         elif env.name == "BallWorld":
             obs_t = env.reset()
             for _ in range(n):
-                action_t = [0]
-                obs_t_1 = env.step(action=None)
-                self.buf.append((obs_t, action_t, obs_t_1))
+                obs_t_1 = env.step()
+
+                obs_t_arr = np.array(obs_t, dtype=np.float32)
+                obs_t_1_arr = np.array(obs_t_1, dtype=np.float32)
+                action_t = np.array([0.0], dtype=np.float32)
+                self.buf.append((obs_t_arr, action_t, obs_t_1_arr))
                 obs_t = obs_t_1
         else:
             obs_t = env.reset()

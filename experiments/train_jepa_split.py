@@ -9,7 +9,7 @@ from torch.optim import Adam
 
 from envs import BallWorld, GridWorld
 from lejepa import RolloutBuffer
-from models import Dynamics, Encoder
+from models import DynamicsSplit, EncoderSplit
 
 rollout_steps = 20_000
 batch_size = 256
@@ -28,8 +28,8 @@ buffer = RolloutBuffer()
 buffer.populate(env, rollout_steps)
 
 # print(buffer.debug_shapes())
-encoder = Encoder(input_dim=4)
-dynamics = Dynamics(action_dim)
+encoder = EncoderSplit()
+dynamics = DynamicsSplit()
 
 all_parameters = list(encoder.parameters()) + list(dynamics.parameters())
 optimizer = Adam(all_parameters, lr)
@@ -51,35 +51,45 @@ def plot_latent_trajectories(encoder, dynamics, buffer, num_trajectories=5, step
         axes = [axes]
 
     for i in range(num_trajectories):
-        obs_t, action_t, obs_t1 = buffer.buf[
-            random.randint(0, len(buffer.buf) - steps - 1)
-        ]
+        # Get a random starting point
+        start_idx = random.randint(0, len(buffer.buf) - steps - 1)
 
-        obs_sequence = [obs_t]
+        # Get real trajectory starting from this point
+        obs_sequence = []
         actions_sequence = []
 
-        # Get real trajectory
-        for j in range(steps):
-            idx = random.randint(0, len(buffer.buf) - 1)
-            _, action, next_obs = buffer.buf[idx]
-            obs_sequence.append(next_obs)
-            actions_sequence.append(action)
+        for j in range(steps + 1):
+            obs, action, _ = buffer.buf[start_idx + j]
+            obs_sequence.append(obs)
+            if j < steps:  # actions are one shorter than observations
+                actions_sequence.append(action)
 
         # Convert to tensors
         obs_tensor = torch.tensor(np.array(obs_sequence), dtype=torch.float32)
         actions_tensor = torch.tensor(np.array(actions_sequence), dtype=torch.float32)
 
         with torch.no_grad():
-            z_real = encoder(obs_tensor)
+            # Get real latent trajectory
+            z_pos_real, z_vel_real, z_real = encoder(obs_tensor)
 
-            z_pred = [z_real[0:1]]
+            # Predict latent trajectory step by step
+            z_pos_pred = [z_pos_real[0:1]]  # Start with first real position
+            z_vel_pred = [z_vel_real[0:1]]  # Start with first real velocity
+
             for t in range(steps):
-                dinput = torch.cat([z_pred[-1], actions_tensor[t : t + 1]], dim=1)
-                z_next = dynamics(dinput)
-                z_pred.append(z_next)
+                # Predict next latent state using dynamics
+                z_pos_next, z_vel_next, _ = dynamics(z_pos_pred[-1], z_vel_pred[-1])
+                z_pos_pred.append(z_pos_next)
+                z_vel_pred.append(z_vel_next)
 
-            z_pred = torch.cat(z_pred)
+            # Concatenate predictions
+            z_pos_pred = torch.cat(z_pos_pred)
+            z_vel_pred = torch.cat(z_vel_pred)
 
+            # Combine position and velocity for plotting (you might want to adjust this)
+            z_pred = torch.cat([z_pos_pred, z_vel_pred], dim=1)
+
+        # Plot first two dimensions of latent space
         axes[i].plot(
             z_real[:, 0].numpy(),
             z_real[:, 1].numpy(),
@@ -106,24 +116,20 @@ def plot_latent_trajectories(encoder, dynamics, buffer, num_trajectories=5, step
     plt.show()
 
 
-# Add this to your training loop to visualize every 500 iterations
 for it in range(iterations):
-    obs_t_batch, action_t_batch, obs_t1_batch = buffer.sample(batch_size)
+    obs_t_batch, _, obs_t1_batch = buffer.sample(batch_size)
 
     obs_t_batch = torch.tensor(obs_t_batch, dtype=torch.float32)
-    action_t_batch = torch.tensor(action_t_batch, dtype=torch.float32)
     obs_t1_batch = torch.tensor(obs_t1_batch, dtype=torch.float32)
 
-    obs_t_batch_norm = normalize(obs_t_batch)
-    obs_t1_batch_norm = normalize(obs_t1_batch)
+    # Encode both
+    z_pos, z_vel, z = encoder(obs_t_batch)
+    z_pos1, z_vel1, _ = encoder(obs_t1_batch)
 
-    z_t = encoder(obs_t_batch_norm)
-    z_t1 = encoder(obs_t1_batch_norm)
+    # Predict next latent
+    z_pos_pred, z_vel_pred, z_pred = dynamics(z_pos, z_vel)
 
-    dinput = torch.cat([z_t, action_t_batch], dim=1)
-    z_pred = dynamics(dinput)
-
-    loss = F.mse_loss(z_pred, z_t1)
+    loss = F.mse_loss(z_pos_pred, z_pos1) + F.mse_loss(z_vel_pred, z_vel1)
 
     optimizer.zero_grad()
     loss.backward()
