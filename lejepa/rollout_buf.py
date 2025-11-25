@@ -21,6 +21,26 @@ class RolloutBuffer:
 
         return obs_t_batch, action_batch, obs_t1_batch
 
+    def sample_with_k(self, batch_size, K=10):
+        # Randomly choose dt from {1, 2, ..., K}
+        time_gap = random.randint(1, K)
+
+        # Sample with random time gap Δt
+        # Only sample from indices where we can look ahead 'time_gap' steps
+        max_start_index = len(self.buf) - time_gap
+        if max_start_index < batch_size:
+            # If not enough samples, reduce time_gap
+            return self.sample_with_k(batch_size, K=time_gap - 1)
+
+        # Sample starting indices
+        start_indices = random.sample(range(max_start_index), batch_size)
+
+        obs_t_batch = np.array([self.buf[i][0] for i in start_indices])
+        action_batch = np.array([self.buf[i][1] for i in start_indices])
+        obs_t_gap_batch = np.array([self.buf[i + time_gap][0] for i in start_indices])
+
+        return obs_t_batch, action_batch, obs_t_gap_batch, time_gap
+
     def populate(self, env, n):
         if env.name == "GridWorld":
             obs_t = env.reset()

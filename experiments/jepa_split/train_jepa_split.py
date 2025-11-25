@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import stack
 from torch.optim import Adam
 
-from envs import BallWorld, GridWorld
+from envs import BallWorld
 from lejepa import RolloutBuffer
 from models import DynamicsSplit, EncoderSplit
 
