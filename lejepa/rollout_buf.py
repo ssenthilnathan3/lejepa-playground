@@ -23,7 +23,7 @@ class RolloutBuffer:
 
     def sample_with_k(self, batch_size, K=10):
         # Randomly choose dt from {1, 2, ..., K}
-        time_gap = random.randint(1, K)
+        time_gap = random.choice([1, 3, 5, 10])
 
         # Sample with random time gap Δt
         # Only sample from indices where we can look ahead 'time_gap' steps
