@@ -34,3 +34,12 @@ BallWorld fits perfectly here, I'm gonna try the same setup and train jepa with 
     - even scaled vx/vy get overshadowed
 
 *To know more about how I approached [LeJEPA](https://github.com/ssenthilnathan3/lejepa-playground/blob/main/LeJEPA.md)*
+
+
+## TODO:
+
+- [x] Build a stable encoder, dynamics and predictor model
+- [x] Introduce masking, temporal encoding, dynamic prior
+- [x] Plotting PCA to observe model behaviour
+- [] Write a wrapper for LeJEPA to wrap around any environment with given params
+- [] Write a 2d bicycle dynamic to simulate the self-driving with lejepa
