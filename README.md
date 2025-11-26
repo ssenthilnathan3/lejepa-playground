@@ -41,5 +41,5 @@ BallWorld fits perfectly here, I'm gonna try the same setup and train jepa with 
 - [x] Build a stable encoder, dynamics and predictor model
 - [x] Introduce masking, temporal encoding, dynamic prior
 - [x] Plotting PCA to observe model behaviour
-- [] Write a wrapper for LeJEPA to wrap around any environment with given params
-- [] Write a 2d bicycle dynamic to simulate the self-driving with lejepa
+- [ ] Write a wrapper for LeJEPA to wrap around any environment with given params
+- [ ] Write a 2d bicycle dynamic to simulate the self-driving with lejepa
