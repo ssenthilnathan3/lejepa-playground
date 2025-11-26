@@ -1,4 +1,11 @@
-# An implementation try to build a LeJEPA playground
+Trying to build a LeJEPA playground
+
+
+[What is JEPA?](https://www.youtube.com/watch?v=yUmDRxV0krg)
+
+What is LeJEPA?
+
+- [Paper](https://arxiv.org/pdf/2511.08544)
 
 ## Observations
 
@@ -25,3 +32,14 @@ BallWorld fits perfectly here, I'm gonna try the same setup and train jepa with 
     - x, y are large-scale
     - vx, vy are small contributions
     - even scaled vx/vy get overshadowed
+
+*To know more about how I approached [LeJEPA](https://github.com/ssenthilnathan3/lejepa-playground/blob/main/LeJEPA.md)*
+
+
+## TODO:
+
+- [x] Build a stable encoder, dynamics and predictor model
+- [x] Introduce masking, temporal encoding, dynamic prior
+- [x] Plotting PCA to observe model behaviour
+- [ ] Write a wrapper for LeJEPA to wrap around any environment with given params
+- [ ] Write a 2d bicycle dynamic to simulate the self-driving with lejepa
