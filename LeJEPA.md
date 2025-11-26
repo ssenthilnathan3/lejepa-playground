@@ -6,8 +6,6 @@ LeJEPA is a **latent forward-dynamics learner** based on the JEPA philosophy:
 
 > *Instead of predicting raw future states, predict how the future latent representation relates to the present latent representation.*
 
-To support this, we created two encoders:
-
 ### **Context Encoder**
 
 * Learns from masked observations
